@@ -6,10 +6,10 @@ class Stock:
         self.prices = prices
     
     def to_csv(self, path, n):
-        data = [["Date", "Open", "High", "Low", "Close", "Volume", "Moving Average", "Weighted Average",
+        data = [["Symbol", "Date", "Open", "High", "Low", "Close", "Volume", "Moving Average", "Weighted Average",
         "Momentum", "Stochastic K", "Stochastic D", "Relative Strength", "Larry", "Accumulation", "CCI"]]
         for i in range(max(2 * n, 14), len(self.prices)):
-            line = [self.prices[i].date, self.prices[i].opening, self.prices[i].high, self.prices[i].low, self.prices[i].closing, self.prices[i].volume,
+            line = [self.name, self.prices[i].date, self.prices[i].opening, self.prices[i].high, self.prices[i].low, self.prices[i].closing, self.prices[i].volume,
             self.moving_average(n, i), self.weighted_average(14, i), self.momentum(n, i), self.stochastic_k(n, i),
             self.stochastic_d(n, i), self.relative_strength(n, i), self.larry(n, i),
             self.accumulation(i), self.CCI(n, i)]
