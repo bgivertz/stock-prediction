@@ -48,8 +48,6 @@ def generate_stock_csvs(path, verbose):
                 print('\nfor day ' + str(n) + ' the skipped rows were:')
                 print('\t' + '\n\t'.join(skipped_rows))
 
-
-
             # creates a stock object that stores a list of all the prices (a list of Price objects)
             # on each date
             stock = create_stock(file_name, data)
