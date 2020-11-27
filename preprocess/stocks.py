@@ -3,6 +3,7 @@ import csv
 class Stock:
     def __init__(self, name, prices):
         self.name = name
+        #stores a list of Price objects, corresponding to the prices on each date
         self.prices = prices
     
     def to_csv(self, path, n):

@@ -3,3 +3,7 @@ tensorflow==2.3.0
 matplotlib==3.1.1
 numpy==1.17.3
 python-twitter
+snscrape===0.3.4
+tweet-preprocessor===0.6.0
+textblob===0.15.3
+langdetect===1.0.8
