@@ -35,7 +35,8 @@ def main():
     '''
     TWITTER PREPROCESS
     scrapes twitter for tweets containing hashtags (specified in config.py) over a certain time period
-    and runs sentiment analysis on them'''
+    and runs sentiment analysis on them, returns a dictionary containing hashtag mapped to
+    [average sentiment, average polarity] for all posts containing that hashtag'''
     print('running tweet preprocess... ')
     twitter_sentiments = tweets_preprocess.generate_tweet_sentiments()
 
