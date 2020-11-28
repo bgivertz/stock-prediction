@@ -31,14 +31,16 @@ def main():
       that contain stock data over different denominations of past time periods'''
     print('running stock preprocess... ')
     stock_preprocess.generate_stock_csvs(path, verbose)
+    stock_preprocess.vectorize_stock_csv(path)
 
     '''
     TWITTER PREPROCESS
     scrapes twitter for tweets containing hashtags (specified in config.py) over a certain time period
-    and runs sentiment analysis on them, returns a dictionary containing hashtag mapped to
-    [average sentiment, average polarity] for all posts containing that hashtag'''
+    and runs sentiment analysis on them, returns a list of dictionaries, where each dictionary
+     corresponds to a certain day within the date range specified in config, and each dictionary
+    contains a hashtag mapped to [average sentiment, average polarity] for all posts containing that hashtag'''
     print('running tweet preprocess... ')
-    twitter_sentiments = tweets_preprocess.generate_tweet_sentiments()
+    days_of_sentiments = tweets_preprocess.generate_tweet_sentiments(path)
 
 
 
