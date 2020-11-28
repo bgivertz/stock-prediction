@@ -7,3 +7,5 @@ snscrape===0.3.4
 tweet-preprocessor===0.6.0
 textblob===0.15.3
 langdetect===1.0.8
+yfinance===0.1.55
+pandas===1.1.4
