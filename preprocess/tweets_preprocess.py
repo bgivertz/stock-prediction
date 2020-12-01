@@ -97,6 +97,7 @@ def generate_tweet_sentiments(path):
                             ' '.join([str(elem) for elem in config.keyword_list]), str(config.max_num_tweets)]
 
     sentiments_file = ''
+    found_sentiments_file = False
 
     # if csv file with sentiments already exists
     sentiments_data_path = path + '/tweet_data/'
@@ -115,6 +116,8 @@ def generate_tweet_sentiments(path):
                         if last_date_converted < convert_to_date_object(stock_dates[-1]):
                             new_start_index = stock_dates.index(last_date_converted.strftime("%Y-%m-%d"))
                             stock_dates = stock_dates[new_start_index + 1: -1]
+                            found_sentiments_file = True
+
                         else:
                             numpy_sentiments = np.genfromtxt(path + '/tweet_data/sentiments.csv', delimiter=',',
                                                              skip_header=1)
@@ -126,7 +129,7 @@ def generate_tweet_sentiments(path):
     # unique, sentiments file, or use old one
     if not os.path.exists(path + "/tweet_data/"):
         os.makedirs(path + "/tweet_data/")
-    if(sentiments_file == ''):
+    if not found_sentiments_file:
         sentiments_file = path + "/tweet_data/sentiments-" + time.strftime("%Y%m%d-%H%M%S") + '.csv'
         with open(sentiments_file, 'w') as csvfile:
             csvwriter = csv.writer(csvfile)
