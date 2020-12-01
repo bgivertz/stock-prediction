@@ -4,8 +4,8 @@ from preprocess.stocks import *
 import yfinance as yf
 from preprocess import config
 import shutil
-from datetime import date, timedelta
-
+import numpy as np
+import datetime as dt
 
 def create_stock(name, data):
     prices = []
@@ -22,8 +22,6 @@ def parse_csv(path):
     skipped_rows = set()
     with open(path, newline='') as csvfile:
         reader = csv.reader(csvfile)
-        #skip header
-        next(reader)
         for row_num, row in enumerate(reader):
             try:
                 row_data = [row[0]]
@@ -39,19 +37,21 @@ def get_stock_csv_files(path):
     return [os.path.join(path, filename) for filename in filenames if filename.endswith('.csv')]
 
 
-def convert_to_date_object(date_string):
-    date_format = date_string.split('-')
-    # convert day to date format, and get day after current day
-    return date(int(date_format[0]), int(date_format[1]), int(date_format[2]))
-
-
 def pull_csvs_from_yahoo_finance(path):
     for stock_listing_symbol in config.stock_listing_symbols:
-        data_as_dataframe = yf.download(stock_listing_symbol, start=config.date_range_start, end=config.date_range_end,
+
+        start_date = dt.datetime.strptime(config.date_range_start, '%Y-%m-%d')
+        delt = dt.timedelta(100)
+        start = (start_date - delt).strftime('%Y-%m-%d')
+
+        data_as_dataframe = yf.download(stock_listing_symbol, start=start, end=config.date_range_end,
                                         progress=False)
         data_as_dataframe.to_csv(path + '/' + stock_listing_symbol + '.csv')
 
-
+'''
+makes every stock within a data_# subdirectory
+have the same number of rows (and dates)
+'''
 def create_uniform_skipped_rows(path, skipped_rows):
     prev_days = [5, 10, 15, 20, 25, 30]
     for n in prev_days:
@@ -68,8 +68,6 @@ def create_uniform_skipped_rows(path, skipped_rows):
                     for row_num, row in enumerate(csv_reader):
                         if row_num not in skipped_rows:
                             csvwriter.writerow(row)
-                        else:
-                            print(row_num)
             os.remove(csv_file)
             os.rename(os.path.splitext(csv_file)[0] + '-clean.csv', csv_file)
 
@@ -82,40 +80,38 @@ def generate_stock_csvs(path, verbose):
     for file in existing_csv_files:
         os.remove(file)
 
-    # gets needed csvs
+    #gets needed csvs
     pull_csvs_from_yahoo_finance(path)
 
     # gets names of all stock csv files in data directory
     stock_csv_files = get_stock_csv_files(path)
-    prev_days = [5, 10, 15, 20, 25, 30]
-    for n in prev_days:
+    n = int(config.n_days)
 
-        new_dir = os.path.join(path, f'data_{n}')
-        # remove data in data directories already existing, and generate them anew
-        if os.path.exists(new_dir):
-            shutil.rmtree(new_dir)
-        os.makedirs(new_dir)
 
-        # for each stock
-        for csv_file in stock_csv_files:
-            (file_name, extension) = os.path.splitext(os.path.basename(csv_file))
-            # creates a list of every (non null) row in stock csv files
-            data, one_stock_skipped_rows = parse_csv(csv_file)
-            skipped_rows = one_stock_skipped_rows | skipped_rows
+    new_dir = os.path.join(path, f'data_{n}')
+    # remove data in data directories already existing, and generate them anew
+    if os.path.exists(new_dir):
+        shutil.rmtree(new_dir)
+    os.makedirs(new_dir)
 
-            # only want to print skipped rows if verbose tag was used
-            if verbose == True:
-                print('\nfor day ' + str(n) + ' the skipped rows were:')
-                print('\t' + '\n\t'.join(skipped_rows))
+    for csv_file in stock_csv_files:
+        (file_name, extension) = os.path.splitext(os.path.basename(csv_file))
+        # creates a list of every (non null) row in stock csv files
+        data, one_stock_skipped_rows = parse_csv(csv_file)
+        skipped_rows = one_stock_skipped_rows | skipped_rows
+        # only want to print skipped rows if verbose tag was used
+        if verbose == True:
+            print('\nfor day ' + str(n) + ' the skipped rows were:')
+            print('\t' + '\n\t'.join(skipped_rows))
 
-            # creates a stock object that stores a list of all the prices (a list of Price objects)
-            # on each date
-            stock = create_stock(file_name, data)
-            # creates a new csv file, but this will hold only the cleaned stock and information about
-            # that stock using the past n days
-            new_file_name = f'{file_name}-{n}{extension}'
-            new_path = os.path.join(new_dir, new_file_name)
-            stock.to_csv(new_path, n)
+        # creates a stock object that stores a list of all the prices (a list of Price objects)
+        # on each date
+        stock = create_stock(file_name, data)
+        # creates a new csv file, but this will hold only the cleaned stock and information about
+        # that stock using the past n days
+        new_file_name = f'{file_name}-{n}{extension}'
+        new_path = os.path.join(new_dir, new_file_name)
+        stock.to_csv(new_path, n, config.date_range_start)
 
     #all stocks have the same dates in csv
     create_uniform_skipped_rows(path, skipped_rows)

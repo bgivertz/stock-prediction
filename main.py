@@ -10,7 +10,10 @@ def main():
                         help="Specify the path to your data file (contains csvs with stock data)")
 
     parser.add_argument("-v", "--verbose", required=False,
-                        help="print verbose output")
+                        help="print verbose output", action='store_true')
+
+    parser.add_argument("-s", "--stocks", required=False,
+                        help="only print stocks", action='store_true')
 
     args = parser.parse_args()
 
@@ -20,10 +23,7 @@ def main():
         print("ERROR: path must be a directory")
         exit()
 
-    verbose = True
-    if args.verbose == None:
-        verbose = False
-
+    verbose = args.verbose
 
     '''
     STOCK PREPROCESS
@@ -34,10 +34,11 @@ def main():
 
     '''
     TWITTER PREPROCESS
-    scrapes twitter for tweets containing hashtags (specified in config.py) over a certain time period
+     scrapes twitter for tweets containing hashtags (specified in config.py) over a certain time period
     and runs sentiment analysis on them, outputs into csv'''
-    print('running tweet preprocess... ')
-    tweets_preprocess.generate_tweet_sentiments(path)
+    if not args.stocks:
+        print('running tweet preprocess... ')
+        tweets_preprocess.generate_tweet_sentiments(path)
 
 
 
