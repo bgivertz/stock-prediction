@@ -4,7 +4,7 @@ from preprocess.stocks import *
 import yfinance as yf
 from preprocess import config
 import shutil
-import numpy as np
+from datetime import date, timedelta
 
 
 def create_stock(name, data):
@@ -19,22 +19,30 @@ def create_stock(name, data):
 # creates a list of every valid row in the csv file
 def parse_csv(path):
     data = []
-    skipped_rows = []  # holds rows that wont be added to parsed stock csv
+    skipped_rows = set()
     with open(path, newline='') as csvfile:
         reader = csv.reader(csvfile)
+        #skip header
+        next(reader)
         for row_num, row in enumerate(reader):
             try:
                 row_data = [row[0]]
                 row_data.extend(list(map(lambda n: float(n), row[1:])))
                 data.append(row_data)
             except:
-                skipped_rows.append(str(row_num) + ': ' + str(row))
+                skipped_rows.add(row_num)
     return data, skipped_rows
 
 
 def get_stock_csv_files(path):
     filenames = os.listdir(path)
     return [os.path.join(path, filename) for filename in filenames if filename.endswith('.csv')]
+
+
+def convert_to_date_object(date_string):
+    date_format = date_string.split('-')
+    # convert day to date format, and get day after current day
+    return date(int(date_format[0]), int(date_format[1]), int(date_format[2]))
 
 
 def pull_csvs_from_yahoo_finance(path):
@@ -44,14 +52,37 @@ def pull_csvs_from_yahoo_finance(path):
         data_as_dataframe.to_csv(path + '/' + stock_listing_symbol + '.csv')
 
 
-def generate_stock_csvs(path, verbose):
+def create_uniform_skipped_rows(path, skipped_rows):
+    prev_days = [5, 10, 15, 20, 25, 30]
+    for n in prev_days:
+        # get csvs from each stock data subdirectory
+        stock_sub_dir = path + '/data_' + str(n)
+        for csv_file in get_stock_csv_files(stock_sub_dir):
+            # open each csv file in subdir
+            with open(csv_file, 'r') as current_file:
+                # read each row, and if it is not in skipped rows add it to a cleaned
+                # version of the csv
+                csv_reader = csv.reader(current_file)
+                with open(os.path.splitext(csv_file)[0] + '-clean.csv', 'w') as csvfile:
+                    csvwriter = csv.writer(csvfile)
+                    for row_num, row in enumerate(csv_reader):
+                        if row_num not in skipped_rows:
+                            csvwriter.writerow(row)
+                        else:
+                            print(row_num)
+            os.remove(csv_file)
+            os.rename(os.path.splitext(csv_file)[0] + '-clean.csv', csv_file)
 
-    #delete any existing csv files, so as to only retrieve needed csvs
+
+def generate_stock_csvs(path, verbose):
+    skipped_rows = set()  # holds rows that wont be added to parsed stock csv
+
+    # delete any existing csv files, so as to only retrieve needed csvs
     existing_csv_files = get_stock_csv_files(path)
     for file in existing_csv_files:
         os.remove(file)
 
-    #gets needed csvs
+    # gets needed csvs
     pull_csvs_from_yahoo_finance(path)
 
     # gets names of all stock csv files in data directory
@@ -61,13 +92,16 @@ def generate_stock_csvs(path, verbose):
 
         new_dir = os.path.join(path, f'data_{n}')
         # remove data in data directories already existing, and generate them anew
-        shutil.rmtree(new_dir)
+        if os.path.exists(new_dir):
+            shutil.rmtree(new_dir)
         os.makedirs(new_dir)
 
+        # for each stock
         for csv_file in stock_csv_files:
             (file_name, extension) = os.path.splitext(os.path.basename(csv_file))
             # creates a list of every (non null) row in stock csv files
-            data, skipped_rows = parse_csv(csv_file)
+            data, one_stock_skipped_rows = parse_csv(csv_file)
+            skipped_rows = one_stock_skipped_rows | skipped_rows
 
             # only want to print skipped rows if verbose tag was used
             if verbose == True:
@@ -83,23 +117,5 @@ def generate_stock_csvs(path, verbose):
             new_path = os.path.join(new_dir, new_file_name)
             stock.to_csv(new_path, n)
 
-    stock = create_stock("", data)
-
-'''
-    looks in stock data directory, and converts all stock data to 3d vector of shape
-    (num_stocks, num days, stock parameter size)
-'''
-def vectorize_stock_csv(path):
-    stock_directory = os.path.join(path, f'data_{config.n_days}')
-    filenames = os.listdir(stock_directory)
-    all_stock_data = []
-    for file_num, file in enumerate(filenames):
-        stocks_by_day = [] #shape = (num days,  15 (number of properties of stock))
-        with open(stock_directory + '/' + file, 'r') as current_file:
-            reader = csv.reader(current_file)
-            for row in reader:
-                stocks_by_day.append(row)
-        numpy_stocks_by_day = np.array(stocks_by_day)[1:, 2:]
-        all_stock_data.append(numpy_stocks_by_day)
-    all_stock_data = np.array(all_stock_data)
-    return all_stock_data
+    #all stocks have the same dates in csv
+    create_uniform_skipped_rows(path, skipped_rows)
