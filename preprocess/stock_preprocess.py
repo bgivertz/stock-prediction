@@ -5,7 +5,7 @@ import yfinance as yf
 from preprocess import config
 import shutil
 import numpy as np
-
+import datetime as dt
 
 def create_stock(name, data):
     prices = []
@@ -39,7 +39,12 @@ def get_stock_csv_files(path):
 
 def pull_csvs_from_yahoo_finance(path):
     for stock_listing_symbol in config.stock_listing_symbols:
-        data_as_dataframe = yf.download(stock_listing_symbol, start=config.date_range_start, end=config.date_range_end,
+
+        start_date = dt.datetime.strptime(config.date_range_start, '%Y-%m-%d')
+        delt = dt.timedelta(100)
+        start = (start_date - delt).strftime('%Y-%m-%d')
+
+        data_as_dataframe = yf.download(stock_listing_symbol, start=start, end=config.date_range_end,
                                         progress=False)
         data_as_dataframe.to_csv(path + '/' + stock_listing_symbol + '.csv')
 
@@ -56,32 +61,33 @@ def generate_stock_csvs(path, verbose):
 
     # gets names of all stock csv files in data directory
     stock_csv_files = get_stock_csv_files(path)
-    prev_days = [5, 10, 15, 20, 25, 30]
-    for n in prev_days:
+    n = int(config.n_days)
 
-        new_dir = os.path.join(path, f'data_{n}')
-        # remove data in data directories already existing, and generate them anew
+
+    new_dir = os.path.join(path, f'data_{n}')
+    # remove data in data directories already existing, and generate them anew
+    if os.path.exists(new_dir):
         shutil.rmtree(new_dir)
-        os.makedirs(new_dir)
+    os.makedirs(new_dir)
 
-        for csv_file in stock_csv_files:
-            (file_name, extension) = os.path.splitext(os.path.basename(csv_file))
-            # creates a list of every (non null) row in stock csv files
-            data, skipped_rows = parse_csv(csv_file)
+    for csv_file in stock_csv_files:
+        (file_name, extension) = os.path.splitext(os.path.basename(csv_file))
+        # creates a list of every (non null) row in stock csv files
+        data, skipped_rows = parse_csv(csv_file)
 
-            # only want to print skipped rows if verbose tag was used
-            if verbose == True:
-                print('\nfor day ' + str(n) + ' the skipped rows were:')
-                print('\t' + '\n\t'.join(skipped_rows))
+        # only want to print skipped rows if verbose tag was used
+        if verbose == True:
+            print('\nfor day ' + str(n) + ' the skipped rows were:')
+            print('\t' + '\n\t'.join(skipped_rows))
 
-            # creates a stock object that stores a list of all the prices (a list of Price objects)
-            # on each date
-            stock = create_stock(file_name, data)
-            # creates a new csv file, but this will hold only the cleaned stock and information about
-            # that stock using the past n days
-            new_file_name = f'{file_name}-{n}{extension}'
-            new_path = os.path.join(new_dir, new_file_name)
-            stock.to_csv(new_path, n)
+        # creates a stock object that stores a list of all the prices (a list of Price objects)
+        # on each date
+        stock = create_stock(file_name, data)
+        # creates a new csv file, but this will hold only the cleaned stock and information about
+        # that stock using the past n days
+        new_file_name = f'{file_name}-{n}{extension}'
+        new_path = os.path.join(new_dir, new_file_name)
+        stock.to_csv(new_path, n, config.date_range_start)
 
     stock = create_stock("", data)
 

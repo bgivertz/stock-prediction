@@ -10,7 +10,10 @@ def main():
                         help="Specify the path to your data file (contains csvs with stock data)")
 
     parser.add_argument("-v", "--verbose", required=False,
-                        help="print verbose output")
+                        help="print verbose output", action='store_true')
+
+    parser.add_argument("-s", "--stocks", required=False,
+                        help="only print stocks", action='store_true')
 
     args = parser.parse_args()
 
@@ -20,10 +23,7 @@ def main():
         print("ERROR: path must be a directory")
         exit()
 
-    verbose = True
-    if args.verbose == None:
-        verbose = False
-
+    verbose = args.verbose
 
     '''
     STOCK PREPROCESS
@@ -39,8 +39,9 @@ def main():
     and runs sentiment analysis on them, returns a list of dictionaries, where each dictionary
      corresponds to a certain day within the date range specified in config, and each dictionary
     contains a hashtag mapped to [average sentiment, average polarity] for all posts containing that hashtag'''
-    print('running tweet preprocess... ')
-    days_of_sentiments = tweets_preprocess.generate_tweet_sentiments(path)
+    if not args.stocks:
+        print('running tweet preprocess... ')
+        days_of_sentiments = tweets_preprocess.generate_tweet_sentiments(path)
 
 
 

@@ -1,4 +1,5 @@
 import csv
+import datetime as dt
 
 class Stock:
     def __init__(self, name, prices):
@@ -6,10 +7,13 @@ class Stock:
         #stores a list of Price objects, corresponding to the prices on each date
         self.prices = prices
     
-    def to_csv(self, path, n):
+    def to_csv(self, path, n, date_range_start):
         data = [["Symbol", "Date", "Open", "High", "Low", "Close", "Volume", "Moving Average", "Weighted Average",
         "Momentum", "Stochastic K", "Stochastic D", "Relative Strength", "Larry", "Accumulation", "CCI"]]
-        for i in range(max(2 * n, 14), len(self.prices)):
+        start = 0
+        while dt.datetime.strptime(self.prices[start].date, '%Y-%m-%d') < dt.datetime.strptime(date_range_start, '%Y-%m-%d'):
+            start += 1
+        for i in range(start, len(self.prices)):
             line = [self.name, self.prices[i].date, self.prices[i].opening, self.prices[i].high, self.prices[i].low, self.prices[i].closing, self.prices[i].volume,
             self.moving_average(n, i), self.weighted_average(14, i), self.momentum(n, i), self.stochastic_k(n, i),
             self.stochastic_d(n, i), self.relative_strength(n, i), self.larry(n, i),
