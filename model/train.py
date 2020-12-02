@@ -12,12 +12,11 @@ def get_batch(train_inputs, train_labels, batch_size, start_index):
 	return batch_inputs, batch_labels
 
 
-def train(model, train_inputs, train_labels):
+def train(model, train_inputs):
     """
     This method should train the model for a single company and then be called again for the another 
     company. This means this model will be called multiple times per epoch. 
     train_inputs: [num_inputs, length_input(aka stock + twitter)] (should be floats)
-    train_label: [num_inputs, model.output_size(open and close and maybe others)] This should be from one day
     in the future. (should be floats)
     """
 

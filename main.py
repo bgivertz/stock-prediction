@@ -57,12 +57,10 @@ def main():
 
     for stock in stock_vector_list:
         abbreviated_stock_vector = stock[:len(tweets_vector),:]
-        concatenated_vector = np.concatenate((abbreviated_stock_vector, tweets_vector), axis=1)
-        train_input = concatenated_vector[:-1,:]
-        train_labels = concatenated_vector[1:,:2]
+        train_inputs = np.concatenate((abbreviated_stock_vector, tweets_vector), axis=1)
 
 
-        train(model, train_input, train_labels)
+        train(model, train_inputs)
 
 
 
