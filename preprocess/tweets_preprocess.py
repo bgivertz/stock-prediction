@@ -47,7 +47,7 @@ def scrape_for_tweets(path, date_list):
             per_day_sentiment_list.append(avg(per_day_per_keyword_sentiment_list))
 
         # write each day to csv continuously
-        print('writing day ' + str(day) + ' to csv')
+        print('\t\twriting day ' + str(day) + ' to csv')
         write_to_csv(path, np.array(per_day_sentiment_list))
 
 

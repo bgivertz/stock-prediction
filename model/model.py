@@ -9,7 +9,7 @@ class StockModel(tf.keras.Model):
 
         self.output_size = 2
         self.window_size = 5 #Need to update
-        self.input_size = 20
+        self.input_size = 32
         self.batch_size = 100
         self.learning_rate = 0.01
 

@@ -1,6 +1,8 @@
 import tensorflow as tf
-from model import *
+from model import model, preprocess, train
 from preprocess import *
+import numpy as np
+
 
 
 def train(model, train_inputs, train_labels):
@@ -15,20 +17,20 @@ def train(model, train_inputs, train_labels):
     #number of inputs divided by the window size to see how many windows we can get
     num_winds = tf.shape(train_inputs)[0] // model.window_size
     
-    assert num_winds == 200
+    # assert num_winds == 200
 
-    train_inputs = tf.reshape(train_inputs[0:num_winds * model.window_size], (num_winds, model.window_size, model.input_size))
+    train_inputs = tf.reshape(train_inputs[0:num_winds * model.window_size, :], (num_winds, model.window_size, model.input_size))
 
-    assert train_inputs.shape[0] == 200
-    assert train_inputs.shape[1] == 5
-    assert train_inputs.shape[2] == 20
+    # assert train_inputs.shape[0] == 200
+    # assert train_inputs.shape[1] == 5
+    # assert train_inputs.shape[2] == 20
 
     all_loss = []
 
     num_batches = (num_winds * model.window_size) // model.batch_size
 
     for i in range(num_batches):
-        batch_input, batch_label = get_batch(train_inputs, train_labels, model.batch_size, model.batch_size*i)
+        batch_input, batch_label = preprocess.get_batch(train_inputs, train_labels, model.batch_size, model.batch_size*i)
 
         with tf.GradientTape() as tape:
             predictions = model.call(batch_input, None)
