@@ -1,5 +1,6 @@
 __pycache__/
 .DS_Store
+data/
 preprocess/config.py
 .idea/
 preprocess/api_keys
