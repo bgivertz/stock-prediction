@@ -4,6 +4,9 @@ import argparse
 import numpy as np
 from model.model import StockModel
 from model.train import train
+import tensorflow as tf
+
+from sklearn.preprocessing import MinMaxScaler
 
 
 def main():
@@ -17,6 +20,9 @@ def main():
 
     parser.add_argument("-s", "--stocks", required=False,
                         help="only print stocks", action='store_true')
+
+    parser.add_argument("-ns", "--no_sentiment", required=False,
+                        help="don't train with sentiment", action='store_true')
 
     args = parser.parse_args()
 
@@ -55,15 +61,25 @@ def main():
 
     model = StockModel()
 
-    for stock in stock_vector_list:
-        abbreviated_stock_vector = stock[:len(tweets_vector),:]
-        train_inputs = np.concatenate((abbreviated_stock_vector, tweets_vector), axis=1)
+    #normalize
 
+    scaler = MinMaxScaler(feature_range=(0, 1))
+    tweets_vector = scaler.fit_transform(tweets_vector)
+
+    for stock in stock_vector_list:
+        print('\n\n NEW STOCK')
+        stock = scaler.fit_transform(stock)
+
+        abbreviated_stock_vector = stock[:len(tweets_vector)][:]
+        if args.no_sentiment:
+            train_inputs = stock
+            model.input_size = 14
+
+        else:
+            train_inputs = np.concatenate((abbreviated_stock_vector, tweets_vector), axis=1)
+            model.input_size = 32
 
         train(model, train_inputs)
-
-
-
 
 
 if __name__ == '__main__':

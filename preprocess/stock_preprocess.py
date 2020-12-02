@@ -6,6 +6,7 @@ from preprocess import config
 import shutil
 import numpy as np
 import datetime as dt
+from sklearn.preprocessing import MinMaxScaler
 
 
 def create_stock(name, data):

@@ -11,7 +11,7 @@ class StockModel(tf.keras.Model):
         self.window_size = 5 #Need to update
         self.input_size = 32
         self.batch_size = 5
-        self.learning_rate = 0.01
+        self.learning_rate = 0.1
 
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=self.learning_rate)
         self.LSTM = tf.keras.layers.LSTM(128, return_sequences=True, return_state=True)

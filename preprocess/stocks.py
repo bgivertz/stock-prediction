@@ -26,6 +26,8 @@ class Stock:
     
     def moving_average(self, n, t):
         n_prices = list(map(lambda p: p.closing, self.prices[t - n + 1: t + 1]))
+        if(len(n_prices) == 0):
+            print("this is too far back in time for " + self.name)
         return sum(n_prices) / len(n_prices)
     
     def weighted_average(self, n, t):
