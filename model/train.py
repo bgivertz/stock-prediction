@@ -1,5 +1,5 @@
 import tensorflow as tf
-from model import model, preprocess, train
+from model import *
 from preprocess import *
 import numpy as np
 
@@ -15,25 +15,34 @@ def train(model, train_inputs, train_labels):
     """
 
     #number of inputs divided by the window size to see how many windows we can get
-    num_winds = tf.shape(train_inputs)[0] // model.window_size
+    num_winds = (tf.shape(train_inputs)[0]) // model.window_size
     
-    # assert num_winds == 200
+    train_inputs = train_inputs[0:num_winds * model.window_size]
+    train_labels = train_inputs.copy()
 
-    train_inputs = tf.reshape(train_inputs[0:num_winds * model.window_size, :], (num_winds, model.window_size, model.input_size))
+    train_inputs = train_inputs[:-(model.window_size)]
+    train_labels = train_labels[1:-(model.window_size - 1)]
 
-    # assert train_inputs.shape[0] == 200
-    # assert train_inputs.shape[1] == 5
-    # assert train_inputs.shape[2] == 20
+    print(train_inputs.shape)
+
+    train_inputs = tf.reshape(train_inputs, (-1, model.window_size, model.input_size))
+
+    print(train_inputs.shape)
+
+    train_labels = tf.reshape(train_labels, (-1, model.window_size, model.input_size))
+    train_labels = train_labels[:, :, 0:2]
 
     all_loss = []
 
-    num_batches = (num_winds * model.window_size) // model.batch_size
+    num_batches = (tf.shape(train_inputs)[0]) // model.batch_size
+
+    print(tf.shape(train_inputs)[0])
 
     for i in range(num_batches):
-        batch_input, batch_label = preprocess.get_batch(train_inputs, train_labels, model.batch_size, model.batch_size*i)
+        batch_input, batch_label = get_batch(train_inputs, train_labels, model.batch_size, model.batch_size*i)
 
         with tf.GradientTape() as tape:
-            predictions = model.call(batch_input, None)
+            predictions = model.call(batch_input)
             loss = model.loss(predictions, batch_label)
 
         all_loss.append(loss)
@@ -42,8 +51,7 @@ def train(model, train_inputs, train_labels):
         model.optimizer.apply_gradients(zip(gradients, model.trainable_variables))
 
         #keep track of the progress
-        if i % 5 == 0:
-            print("batch", i, "of", num_batches, " // Avg Loss: ", loss/model.batch_size, " // Perplexity: ", np.exp(np.mean(all_loss)))
+        print("batch", i, "of", num_batches, " // Avg Loss: ", loss/model.batch_size)
     
     #perplexity, not sure if it is helpful
     return np.exp(np.mean(all_loss)) 
@@ -52,14 +60,13 @@ def main():
 
     #get_data()
     
-    train_inputs = np.arange(20000, dtype=float)
-    train_labels = np.ones((1000,2))
+    train_inputs = np.arange(60000, dtype=float)
 
-    train_inputs = np.reshape(train_inputs, (1000, 20))
+    train_inputs = np.reshape(train_inputs, (-1, 20))
 
     model = StockModel()
 
-    print("DONE: ", train(model, train_inputs, train_labels))
+    print("DONE: ", train(model, train_inputs))
     
 
 
