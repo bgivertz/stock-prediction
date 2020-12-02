@@ -7,6 +7,7 @@ import shutil
 import numpy as np
 import datetime as dt
 
+
 def create_stock(name, data):
     prices = []
     for d in data:
@@ -39,7 +40,6 @@ def get_stock_csv_files(path):
 
 def pull_csvs_from_yahoo_finance(path):
     for stock_listing_symbol in config.stock_listing_symbols:
-
         start_date = dt.datetime.strptime(config.date_range_start, '%Y-%m-%d')
         delt = dt.timedelta(100)
         start = (start_date - delt).strftime('%Y-%m-%d')
@@ -48,28 +48,30 @@ def pull_csvs_from_yahoo_finance(path):
                                         progress=False)
         data_as_dataframe.to_csv(path + '/' + stock_listing_symbol + '.csv')
 
+
 '''
 makes every stock within a data_# subdirectory
 have the same number of rows (and dates)
 '''
+
+
 def create_uniform_skipped_rows(path, skipped_rows):
-    prev_days = [5, 10, 15, 20, 25, 30]
-    for n in prev_days:
-        # get csvs from each stock data subdirectory
-        stock_sub_dir = path + '/data_' + str(n)
-        for csv_file in get_stock_csv_files(stock_sub_dir):
-            # open each csv file in subdir
-            with open(csv_file, 'r') as current_file:
-                # read each row, and if it is not in skipped rows add it to a cleaned
-                # version of the csv
-                csv_reader = csv.reader(current_file)
-                with open(os.path.splitext(csv_file)[0] + '-clean.csv', 'w') as csvfile:
-                    csvwriter = csv.writer(csvfile)
-                    for row_num, row in enumerate(csv_reader):
-                        if row_num not in skipped_rows:
-                            csvwriter.writerow(row)
-            os.remove(csv_file)
-            os.rename(os.path.splitext(csv_file)[0] + '-clean.csv', csv_file)
+
+    # get csvs from each stock data subdirectory
+    stock_sub_dir = path + '/data_' + str(config.n_days)
+    for csv_file in get_stock_csv_files(stock_sub_dir):
+        # open each csv file in subdir
+        with open(csv_file, 'r') as current_file:
+            # read each row, and if it is not in skipped rows add it to a cleaned
+            # version of the csv
+            csv_reader = csv.reader(current_file)
+            with open(os.path.splitext(csv_file)[0] + '-clean.csv', 'w') as csvfile:
+                csvwriter = csv.writer(csvfile)
+                for row_num, row in enumerate(csv_reader):
+                    if row_num not in skipped_rows:
+                        csvwriter.writerow(row)
+        os.remove(csv_file)
+        os.rename(os.path.splitext(csv_file)[0] + '-clean.csv', csv_file)
 
 
 def generate_stock_csvs(path, verbose):
@@ -80,13 +82,12 @@ def generate_stock_csvs(path, verbose):
     for file in existing_csv_files:
         os.remove(file)
 
-    #gets needed csvs
+    # gets needed csvs
     pull_csvs_from_yahoo_finance(path)
 
     # gets names of all stock csv files in data directory
     stock_csv_files = get_stock_csv_files(path)
     n = int(config.n_days)
-
 
     new_dir = os.path.join(path, f'data_{n}')
     # remove data in data directories already existing, and generate them anew
@@ -113,5 +114,13 @@ def generate_stock_csvs(path, verbose):
         new_path = os.path.join(new_dir, new_file_name)
         stock.to_csv(new_path, n, config.date_range_start)
 
-    #all stocks have the same dates in csv
+    # all stocks have the same dates in csv
     create_uniform_skipped_rows(path, skipped_rows)
+
+    stock_sub_dir = path + '/data_' + str(config.n_days)
+    return get_stock_csv_files(stock_sub_dir)
+
+
+def csv_to_vector(path):
+    stock_vector = np.genfromtxt(path, delimiter=',')
+    return stock_vector[:, 2:] #skips first two columns (date and stock name)

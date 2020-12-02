@@ -19,7 +19,7 @@ that hashtag
 def scrape_for_tweets(path, date_list):
     for day in date_list:
         start_day = convert_to_date_object(day)
-        end_day =  start_day + timedelta(days=1)
+        end_day = start_day + timedelta(days=1)
 
         per_day_sentiment_list = [day]
         # for each keyword assemble a list of all tweets
@@ -60,13 +60,15 @@ def write_to_csv(path, arr):
         csvwriter = csv.writer(csvfile)
         csvwriter.writerow(arr)
 
+
 def convert_to_date_object(date_string):
     date_format = date_string.split('-')
     # convert day to date format, and get day after current day
     return date(int(date_format[0]), int(date_format[1]), int(date_format[2]))
 
+
 def generate_list_of_days_from_stock(path):
-    #if stock data exists
+    # if stock data exists
     stock_path = path + '/data_' + config.n_days
     stock_file = stock_path + '/' + config.stock_listing_symbols[0] + '-' + config.n_days + '.csv'
     date_list = []
@@ -75,7 +77,7 @@ def generate_list_of_days_from_stock(path):
             csv_reader = csv.reader(current_file, delimiter=',')
             next(csv_reader)
             for line in csv_reader:
-                #gets date from stock csv
+                # gets date from stock csv
                 date_list.append(line[1])
     else:
         print('no stock data found under the path' + stock_file)
@@ -88,7 +90,8 @@ def check_csv_tweet_progress(path):
         last_date = last_line[0]
         return last_date
 
-def generate_tweet_sentiments(path):
+
+def generate_tweet_sentiment_csvs(path):
     stock_dates = generate_list_of_days_from_stock(path)
 
     # all parameters necessary to extract tweets. used to record if already have csv with tweets extracted using given parameters
@@ -117,9 +120,10 @@ def generate_tweet_sentiments(path):
                             new_start_index = stock_dates.index(last_date_converted.strftime("%Y-%m-%d"))
                             stock_dates = stock_dates[new_start_index + 1: -1]
                             found_sentiments_file = True
+                            break
 
                         else:
-                            numpy_sentiments = np.genfromtxt(path + '/tweet_data/sentiments.csv', delimiter=',',
+                            numpy_sentiments = np.genfromtxt(sentiments_file, delimiter=',',
                                                              skip_header=1)
                             return numpy_sentiments
 
@@ -131,13 +135,32 @@ def generate_tweet_sentiments(path):
         os.makedirs(path + "/tweet_data/")
     if not found_sentiments_file:
         sentiments_file = path + "/tweet_data/sentiments-" + time.strftime("%Y%m%d-%H%M%S") + '.csv'
+
         with open(sentiments_file, 'w') as csvfile:
             csvwriter = csv.writer(csvfile)
             csvwriter.writerow(tweet_extract_params)
 
     # generates a 2d array of dimensions number of days x number of keywords, where each index contains average sentiment for that day and keyword
     print(
-        '\n\tretrieving tweets with the following hashtag(s) posted btwn ' + stock_dates[0] + " and " + stock_dates[-1] + " ...")
-    tweet_sentiments = scrape_for_tweets(sentiments_file, stock_dates)
+        '\n\tretrieving tweets with the following hashtag(s) posted btwn ' + stock_dates[0] + " and " + stock_dates[
+            -1] + " ...")
+    scrape_for_tweets(sentiments_file, stock_dates)
+    return sentiments_file
 
-    return tweet_sentiments
+
+def csv_to_vector(path, csv_path=None):
+
+    if csv_path == None:
+        if not os.path.exists(path + "/tweet_data/") or os.listdir(path + "/tweet_data/") == 0:
+            print('empty or non-existing tweet data directory')
+            return
+        files = os.listdir(path + "/tweet_data/")
+
+        # get most recently generated file
+        sorted_files = sorted(files, key=lambda timestamp: time.strptime(timestamp[len('sentiments')+1:-4], "%Y%m%d-%H%M%S"))
+        csv_path = path + '/tweet_data/' + sorted_files[-1]
+
+    tweet_sentiment_vector = np.genfromtxt(csv_path, delimiter=',', skip_header=1)
+    tweet_sentiment_vector = tweet_sentiment_vector[:, 1:] #skips first column (date)
+    return tweet_sentiment_vector
+

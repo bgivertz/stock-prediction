@@ -1,6 +1,7 @@
 import os
 from preprocess import stock_preprocess, tweets_preprocess
 import argparse
+import numpy as np
 
 
 def main():
@@ -30,7 +31,11 @@ def main():
       uses csv files from yahoo finance of stock information to create several directories of parsed csv files
       that contain stock data over different denominations of past time periods'''
     print('running stock preprocess... ')
-    stock_preprocess.generate_stock_csvs(path, verbose)
+    stock_files = stock_preprocess.generate_stock_csvs(path, verbose)
+
+    stock_vector_list = []
+    for file in stock_files:
+        stock_vector_list.append(stock_preprocess.csv_to_vector(file))
 
     '''
     TWITTER PREPROCESS
@@ -38,7 +43,21 @@ def main():
     and runs sentiment analysis on them, outputs into csv'''
     if not args.stocks:
         print('running tweet preprocess... ')
-        tweets_preprocess.generate_tweet_sentiments(path)
+        tweets_csv = tweets_preprocess.generate_tweet_sentiment_csvs(path)
+        tweets_vector = tweets_preprocess.csv_to_vector(path, tweets_csv)
+
+    else:
+        print('getting tweet data from most recently create tweet file... ')
+        tweets_vector = tweets_preprocess.csv_to_vector(path)
+
+    # creates a list where each element is a matrix of (num days x (#stock params + #keywords))
+    concatenated_vector_list = []
+    for stock in stock_vector_list:
+        abbreviated_stock_vector = stock[:len(tweets_vector),:]
+        concatenated_vector_list.append(np.concatenate((abbreviated_stock_vector, tweets_vector), axis=1))
+
+
+
 
 
 
