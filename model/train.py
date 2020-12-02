@@ -1,8 +1,14 @@
 import tensorflow as tf
 from model import *
-from preprocess import *
 import numpy as np
 
+
+def get_batch(train_inputs, train_labels, batch_size, start_index):
+	
+	batch_inputs = train_inputs[start_index : start_index + batch_size, :, :]
+	batch_labels = train_labels[start_index : start_index + batch_size, :, :]
+
+	return batch_inputs, batch_labels
 
 
 def train(model, train_inputs, train_labels):
@@ -23,11 +29,7 @@ def train(model, train_inputs, train_labels):
     train_inputs = train_inputs[:-(model.window_size)]
     train_labels = train_labels[1:-(model.window_size - 1)]
 
-    print(train_inputs.shape)
-
     train_inputs = tf.reshape(train_inputs, (-1, model.window_size, model.input_size))
-
-    print(train_inputs.shape)
 
     train_labels = tf.reshape(train_labels, (-1, model.window_size, model.input_size))
     train_labels = train_labels[:, :, 0:2]
@@ -35,8 +37,6 @@ def train(model, train_inputs, train_labels):
     all_loss = []
 
     num_batches = (tf.shape(train_inputs)[0]) // model.batch_size
-
-    print(tf.shape(train_inputs)[0])
 
     for i in range(num_batches):
         batch_input, batch_label = get_batch(train_inputs, train_labels, model.batch_size, model.batch_size*i)
