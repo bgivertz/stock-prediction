@@ -14,16 +14,15 @@ class StockModel(tf.keras.Model):
         self.learning_rate = 0.01
 
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=self.learning_rate)
-        self.GRU = tf.keras.layers.GRU(128, return_sequences=True, return_state=True)
+        self.LSTM = tf.keras.layers.LSTM(128, return_sequences=True, return_state=True)
         self.D1 = tf.keras.layers.Dense(units=500, activation='relu')
         self.D2 = tf.keras.layers.Dense(units=self.output_size, activation='softmax')
 
 
-    def call(self, inputs, initial_state):
+    def call(self, inputs):
 
-        print(inputs)
         #May switch to LSTM
-        whole_seq_output, final_state = self.GRU(inputs=inputs, initial_state=initial_state)
+        whole_seq_output, _, _ = self.LSTM(inputs=inputs)
 
         x = self.D1(whole_seq_output)
         probs = self.D2(x)
@@ -31,7 +30,9 @@ class StockModel(tf.keras.Model):
         return probs
 
     def loss(self, probs, labels):
+        """returns average batch loss"""
 
-        loss = tf.keras.losses.sparse_categorical_crossentropy(labels, probs)
+        loss = tf.keras.losses.MSE(labels, probs)
+        loss = tf.reduce_mean(loss)
 
-        return tf.math.reduce_mean(loss)
+        return loss
