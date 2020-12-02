@@ -10,7 +10,7 @@ class StockModel(tf.keras.Model):
         self.output_size = 2
         self.window_size = 5 #Need to update
         self.input_size = 32
-        self.batch_size = 100
+        self.batch_size = 5
         self.learning_rate = 0.01
 
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=self.learning_rate)
