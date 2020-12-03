@@ -4,7 +4,7 @@ import argparse
 import numpy as np
 from model.model import StockModel
 from model.train import train
-import tensorflow as tf
+from model.test_loop import test
 
 from sklearn.preprocessing import MinMaxScaler
 
@@ -66,20 +66,38 @@ def main():
     scaler = MinMaxScaler(feature_range=(0, 1))
     tweets_vector = scaler.fit_transform(tweets_vector)
 
+    num_test_values = 500
+    tweets_vector_train = tweets_vector[:-num_test_values][:]
+    tweets_vector_test = tweets_vector[-num_test_values:][:]
+
     for stock in stock_vector_list:
         print('\n\n NEW STOCK')
         stock = scaler.fit_transform(stock)
-
-        abbreviated_stock_vector = stock[:len(tweets_vector)][:]
+        abbreviated_stock_vector = stock[:len(tweets_vector_train)][:]
         if args.no_sentiment:
             train_inputs = stock
             model.input_size = 14
 
         else:
-            train_inputs = np.concatenate((abbreviated_stock_vector, tweets_vector), axis=1)
+            train_inputs = np.concatenate((abbreviated_stock_vector, tweets_vector_train), axis=1)
             model.input_size = 32
 
         train(model, train_inputs)
+
+
+    print('\n\n\nTESTING')
+    for stock in stock_vector_list:
+        print('\n\n NEW STOCK')
+        stock = scaler.fit_transform(stock)
+        abbreviated_stock_vector_test = stock[-len(tweets_vector_test):][:]
+        if args.no_sentiment:
+            test_inputs = stock
+            model.input_size = 14
+
+        else:
+            test_inputs = np.concatenate((abbreviated_stock_vector_test, tweets_vector_test), axis=1)
+            model.input_size = 32
+        print(test(model, test_inputs))
 
 
 if __name__ == '__main__':

@@ -156,9 +156,9 @@ def csv_to_vector(path, csv_path=None):
             return
         files = os.listdir(path + "/tweet_data/")
 
-        # get most recently generated file
+        # get oldest generated file
         sorted_files = sorted(files, key=lambda timestamp: time.strptime(timestamp[len('sentiments')+1:-4], "%Y%m%d-%H%M%S"))
-        csv_path = path + '/tweet_data/' + sorted_files[-1]
+        csv_path = path + '/tweet_data/' + sorted_files[0]
 
     tweet_sentiment_vector = np.genfromtxt(csv_path, delimiter=',', skip_header=1)
     tweet_sentiment_vector = tweet_sentiment_vector[:, 1:] #skips first column (date)
