@@ -1,6 +1,6 @@
 # TWITTER PREPROCESS QUERY PARAMETERS
 # format: year-month-day (0000-00-00)
-date_range_start = '2015-01-01'
+date_range_start = '2010-01-01'
 date_range_end = '2020-11-01'
 max_num_tweets = 100
 #removed avgo because doesn't have data before 2009

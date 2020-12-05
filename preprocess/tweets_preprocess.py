@@ -116,16 +116,14 @@ def generate_tweet_sentiment_csvs(path):
                         print('found file with sentiments already generated using given parameters')
                         csv_tweet_progress = check_csv_tweet_progress(sentiments_file)
                         last_date_converted = convert_to_date_object(csv_tweet_progress)
-                        if last_date_converted < convert_to_date_object(stock_dates[-1]):
+                        if last_date_converted < convert_to_date_object(stock_dates[-1]) - timedelta(days=1):
                             new_start_index = stock_dates.index(last_date_converted.strftime("%Y-%m-%d"))
                             stock_dates = stock_dates[new_start_index + 1: -1]
                             found_sentiments_file = True
                             break
 
                         else:
-                            numpy_sentiments = np.genfromtxt(sentiments_file, delimiter=',',
-                                                             skip_header=1)
-                            return numpy_sentiments
+                            return sentiments_file
 
     # no csv files exist with given parameters, or file exists, but we need to
     # add to it
