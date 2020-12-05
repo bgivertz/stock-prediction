@@ -44,7 +44,7 @@ def test(model, test_inputs):
         predictions = model.call(batch_input)
         loss = model.loss(predictions, batch_label)
 
-        all_accuracy.append(accuracy(tf.cast(batch_input, tf.float32), tf.cast(predictions, tf.float32), tf.cast(batch_label, tf.float32)))
+        all_accuracy.append(accuracy(tf.cast(batch_input, tf.float32), tf.cast(predictions, tf.float32), tf.cast(batch_label, tf.float32), model))
         all_loss.append(loss)
 
         # keep track of the progress
@@ -53,8 +53,11 @@ def test(model, test_inputs):
     return np.mean(all_accuracy)
 
 
-def accuracy(inputs, predictions, labels):
+def accuracy(inputs, predictions, labels, model):
     correct_predictions = 0
+    predictions = tf.reshape(predictions, (model.batch_size * model.window_size, -1))
+    labels = tf.reshape(labels, (model.batch_size * model.window_size, -1))
+    inputs = tf.reshape(inputs, (model.batch_size * model.window_size, -1))
     for idx in range(0, len(predictions)):
         # check if correctly predicted would go up/down
         if np.sign(predictions[idx][0] - inputs[idx][0]) == np.sign(labels[idx][0] - inputs[idx][0]):

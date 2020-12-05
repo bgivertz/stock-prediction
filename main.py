@@ -65,6 +65,8 @@ def main():
 
     scaler = MinMaxScaler(feature_range=(0, 1))
     tweets_vector = scaler.fit_transform(tweets_vector)
+    for stock in range(len(stock_vector_list)):
+        stock_vector_list[stock] = scaler.fit_transform(stock_vector_list[stock])
 
     num_test_values = 500
     tweets_vector_train = tweets_vector[:-num_test_values][:]
@@ -72,7 +74,6 @@ def main():
 
     for stock in stock_vector_list:
         print('\n\n NEW STOCK')
-        stock = scaler.fit_transform(stock)
         abbreviated_stock_vector = stock[:len(tweets_vector_train)][:]
         if args.no_sentiment:
             train_inputs = stock
@@ -88,7 +89,6 @@ def main():
     print('\n\n\nTESTING')
     for stock in stock_vector_list:
         print('\n\n NEW STOCK')
-        stock = scaler.fit_transform(stock)
         abbreviated_stock_vector_test = stock[-len(tweets_vector_test):][:]
         if args.no_sentiment:
             test_inputs = stock

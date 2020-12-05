@@ -14,18 +14,29 @@ class StockModel(tf.keras.Model):
         self.learning_rate = 0.1
 
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=self.learning_rate)
-        self.LSTM = tf.keras.layers.LSTM(128, return_sequences=True, return_state=True)
-        self.D1 = tf.keras.layers.Dense(units=500, activation='relu')
-        self.D2 = tf.keras.layers.Dense(units=self.output_size, activation='softmax')
+        self.LSTM1 = tf.keras.layers.LSTM(50, return_sequences=True, return_state=True, dtype=tf.float32)
+        self.dropout1 = tf.keras.layers.Dropout(.2)
+        self.LSTM2 = tf.keras.layers.LSTM(50, return_sequences=True, return_state=True, dtype=tf.float32)
+        self.dropout2 = tf.keras.layers.Dropout(.2)
+        self.LSTM3 = tf.keras.layers.LSTM(50, return_sequences=True, return_state=True, dtype=tf.float32)
+        self.dropout3 = tf.keras.layers.Dropout(.2)
+        self.D1 = tf.keras.layers.Dense(units=self.output_size, activation='linear', dtype=tf.float32)
+        #self.D2 = tf.keras.layers.Dense(units=self.output_size, activation='relu', dtype=tf.float32)
 
 
     def call(self, inputs):
 
         #May switch to LSTM
-        whole_seq_output, _, _ = self.LSTM(inputs=inputs)
+        lstm1_seq_output, _, _ = self.LSTM1(inputs=inputs)
+        dropout1 = self.dropout1(lstm1_seq_output)
+        lstm2_seq_output, _, _ = self.LSTM2(dropout1)
+        dropout2 = self.dropout2(lstm2_seq_output)
+        lstm3_seq_output, _, _ = self.LSTM3(dropout2)
+        dropout3 = self.dropout3(lstm3_seq_output)
+        probs = self.D1(dropout3)
 
-        x = self.D1(whole_seq_output)
-        probs = self.D2(x)
+        # x = self.D1(whole_seq_output)
+        # probs = self.D2(x)
         
         return probs
 
