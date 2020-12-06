@@ -16,11 +16,15 @@ def train(model, train_data):
         print(f'EPOCH {epoch + 1}/{model.epochs}')
         for stock in train_data:
             inputs, labels = generate_input(stock, model.window_size)
+            
+            inds = tf.range(inputs.shape[0])
+            tf.random.shuffle(inds)
+            inputs = tf.gather(inputs, inds)
+            labels = tf.gather(labels, inds)
 
             num_batches = tf.shape(inputs)[0] // model.batch_size
             for i in range(num_batches):
                 batch_input, batch_labels = get_batch(inputs, labels, model.batch_size, model.batch_size*i)
-
                 with tf.GradientTape() as tape:
                     predictions = model.call(batch_input)
                     loss = model.loss(predictions, batch_labels)
