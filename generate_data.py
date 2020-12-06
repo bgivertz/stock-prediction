@@ -38,18 +38,13 @@ def main():
     print('running stock preprocess... ')
     stock_files = stock_preprocess.generate_stock_csvs(path, verbose)
 
-    stock_vector_list = []
-    for file in stock_files:
-        stock_vector_list.append(stock_preprocess.csv_to_vector(file))
-
     '''
     TWITTER PREPROCESS
      scrapes twitter for tweets containing hashtags (specified in config.py) over a certain time period
     and runs sentiment analysis on them, outputs into csv'''
     if not args.stocks:
         print('running tweet preprocess... ')
-        tweets_csv = tweets_preprocess.generate_tweet_sentiment_csvs(path)
-        tweets_vector = tweets_preprocess.csv_to_vector(path, tweets_csv)
+        tweets_preprocess.generate_tweet_sentiment_csvs(path)
         
 if __name__ == '__main__':
     main()
