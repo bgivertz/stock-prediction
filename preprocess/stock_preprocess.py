@@ -2,7 +2,7 @@ import os
 import csv
 from preprocess.stocks import *
 import yfinance as yf
-from preprocess import config
+import preprocess.config as config
 import shutil
 import numpy as np
 import datetime as dt

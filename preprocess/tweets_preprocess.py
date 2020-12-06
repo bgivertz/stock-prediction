@@ -1,4 +1,4 @@
-from preprocess import config
+import preprocess.config as config
 import preprocessor as p
 from textblob import TextBlob
 import snscrape.modules.twitter as sntwitter

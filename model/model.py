@@ -3,14 +3,14 @@ from tensorflow.keras import Model
 import numpy as np
 
 class StockModel(tf.keras.Model):
-    def __init__(self):
+    def __init__(self, output_size):
 
         super(StockModel, self).__init__()
 
-        self.output_size = 2
+        self.epochs = 10
+        self.output_size = output_size
         self.window_size = 5 #Need to update
-        self.input_size = 32
-        self.batch_size = 5
+        self.batch_size = 50
         self.learning_rate = 0.1
 
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=self.learning_rate)
@@ -21,7 +21,6 @@ class StockModel(tf.keras.Model):
         self.LSTM3 = tf.keras.layers.LSTM(50, return_sequences=True, return_state=True, dtype=tf.float32)
         self.dropout3 = tf.keras.layers.Dropout(.2)
         self.D1 = tf.keras.layers.Dense(units=self.output_size, activation='linear', dtype=tf.float32)
-        #self.D2 = tf.keras.layers.Dense(units=self.output_size, activation='relu', dtype=tf.float32)
 
 
     def call(self, inputs):
