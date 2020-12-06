@@ -50,10 +50,6 @@ def main():
         print('running tweet preprocess... ')
         tweets_csv = tweets_preprocess.generate_tweet_sentiment_csvs(path)
         tweets_vector = tweets_preprocess.csv_to_vector(path, tweets_csv)
-    else:
-        print('getting tweet data from most recently create tweet file... ')
-        print('')
-        tweets_vector = tweets_preprocess.csv_to_vector(path)
-
+        
 if __name__ == '__main__':
     main()
