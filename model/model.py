@@ -7,11 +7,11 @@ class StockModel(tf.keras.Model):
 
         super(StockModel, self).__init__()
 
-        self.epochs = 10
+        self.epochs = 150
         self.output_size = output_size
         self.window_size = 5 #Need to update
         self.batch_size = 50
-        self.learning_rate = 0.1
+        self.learning_rate = 0.001
 
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=self.learning_rate)
         self.LSTM1 = tf.keras.layers.LSTM(50, return_sequences=True, return_state=True, dtype=tf.float32)
